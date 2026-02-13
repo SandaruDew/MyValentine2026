@@ -259,50 +259,47 @@
         video { width: 100%; max-width: 420px; border-radius: 14px; margin-top: 18px; box-shadow: 0 12px 40px rgba(0,0,0,0.6); border: 1px solid var(--card-border); }
         .video-hint { font-size: 13px; color: var(--text-muted); margin-top: 10px; font-style: italic; }
 
-        /* ── Couple photos ── */
-        .couple-row {
-            display: flex;
-            justify-content: center;
-            align-items: flex-end;
-            gap: 16px;
-            margin: 24px 0 6px;
+        /* ── Side photos ── */
+        .side-photo {
+            position: fixed;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 160px;
+            z-index: 2;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.8s ease;
         }
-        .couple-frame {
-            position: relative;
-            flex: 1;
-            max-width: 180px;
-        }
-        .couple-frame img {
+        .side-photo.visible { opacity: 1; }
+        .side-photo.left  { left: 20px; }
+        .side-photo.right { right: 20px; }
+        .side-photo img {
             width: 100%;
             aspect-ratio: 3/4;
             object-fit: cover;
-            border-radius: 16px;
+            border-radius: 18px;
             border: 2px solid var(--card-border);
-            box-shadow: 0 8px 32px rgba(0,0,0,0.6), 0 0 24px rgba(200,16,46,0.2);
-            animation: photoReveal 0.8s cubic-bezier(.22,1,.36,1) both;
+            box-shadow: 0 8px 40px rgba(0,0,0,0.7), 0 0 30px rgba(200,16,46,0.25);
             display: block;
         }
-        .couple-frame:first-child img { animation-delay: 0.15s; }
-        .couple-frame:last-child  img { animation-delay: 0.35s; }
-        @keyframes photoReveal {
-            from { opacity: 0; transform: translateY(20px) scale(0.93); }
-            to   { opacity: 1; transform: translateY(0)    scale(1);    }
+        .side-photo.left  img { animation: sideRevealLeft  0.9s cubic-bezier(.22,1,.36,1) both; }
+        .side-photo.right img { animation: sideRevealRight 0.9s cubic-bezier(.22,1,.36,1) 0.2s both; }
+        @keyframes sideRevealLeft  {
+            from { opacity:0; transform: translateX(-40px) scale(0.9); }
+            to   { opacity:1; transform: translateX(0)     scale(1);   }
         }
-        .couple-heart {
-            position: absolute;
-            bottom: -14px; left: 50%;
-            transform: translateX(-50%);
-            font-size: 26px;
-            animation: heartBeat 1.4s ease-in-out infinite;
-            filter: drop-shadow(0 2px 8px rgba(255,45,85,0.6));
-            z-index: 2;
+        @keyframes sideRevealRight {
+            from { opacity:0; transform: translateX(40px) scale(0.9); }
+            to   { opacity:1; transform: translateX(0)    scale(1);   }
         }
-        .couple-label {
+        .side-photo-label {
             font-family: 'Playfair Display', serif;
-            font-size: 13px; font-style: italic;
-            color: var(--text-muted);
-            margin-top: 20px;
-            letter-spacing: 0.5px;
+            font-size: 12px; font-style: italic;
+            color: var(--text-muted); text-align: center;
+            margin-top: 10px; letter-spacing: 0.5px;
+        }
+        @media (max-width: 900px) {
+            .side-photo { display: none; }
         }
 
         /* ── Floating characters ── */
@@ -333,6 +330,16 @@
 <div class="roses-bg" id="roses-bg"></div>
 <img id="toothless-img" class="floating-character" src="toothless1.jpg" alt="Toothless">
 <img id="donkey-img"    class="floating-character" src="donkey.png"     alt="Donkey">
+
+<!-- Side photos – shown only on success screen -->
+<div class="side-photo left" id="side-left">
+    <img src="https://raw.githubusercontent.com/SandaruDew/MyValentine2026/main/image1.jpeg" alt="Him">
+    <p class="side-photo-label">Him 🌹</p>
+</div>
+<div class="side-photo right" id="side-right">
+    <img src="https://raw.githubusercontent.com/SandaruDew/MyValentine2026/main/image2.jpeg" alt="Her">
+    <p class="side-photo-label">Her 💕</p>
+</div>
 
 <div class="card" id="main-card">
 
@@ -403,19 +410,7 @@
             You've made me the happiest person in the world.<br>
             Toothless and Donkey have a special message for you…
         </p>
-        <!-- Couple photos -->
-        <div class="couple-row">
-            <div class="couple-frame">
-                <img src="https://raw.githubusercontent.com/SandaruDew/MyValentine2026/main/image1.jpeg" alt="Him" onerror="this.style.display='none'">
-            </div>
-            <div class="couple-frame">
-                <img src="https://raw.githubusercontent.com/SandaruDew/MyValentine2026/main/image2.jpeg" alt="Her" onerror="this.style.display='none'">
-                <span class="couple-heart">💕</span>
-            </div>
-        </div>
-        <p class="couple-label">Us 🌹</p>
-
-        <video id="val-video" controls playsinline style="margin-top:28px;">
+        <video id="val-video" controls playsinline>
             <source src="toothless.mp4" type="video/mp4">
         </video>
         <p class="video-hint" id="video-hint" style="display:none;">▶ Tap to play</p>
@@ -491,6 +486,11 @@ function showSuccess() {
     document.getElementById('success-section').classList.remove('hidden');
     updateCharacterVisibility();
     launchConfetti();
+    // Reveal side photos
+    setTimeout(() => {
+        document.getElementById('side-left').classList.add('visible');
+        document.getElementById('side-right').classList.add('visible');
+    }, 400);
     const video = document.getElementById('val-video');
     if (video) video.play().catch(() => { document.getElementById('video-hint').style.display = 'block'; });
 }
@@ -784,6 +784,11 @@ function updateCharacterVisibility() {
     const isSuccess = !document.getElementById('success-section').classList.contains('hidden');
     const isIntro   = !document.getElementById('intro-section').classList.contains('hidden');
     chars.forEach(c => c.el.classList.toggle('hide', isSuccess || isIntro));
+    // Side photos only on success
+    if (!isSuccess) {
+        document.getElementById('side-left').classList.remove('visible');
+        document.getElementById('side-right').classList.remove('visible');
+    }
 }
 
 updateCharacterVisibility();
